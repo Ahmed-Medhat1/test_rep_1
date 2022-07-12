@@ -35,9 +35,6 @@ LSS += \
 FLASH_IMAGE += \
 0001-DIO_Basics.hex \
 
-EEPROM_IMAGE += \
-0001-DIO_Basics.eep \
-
 SIZEDUMMY += \
 sizedummy \
 
@@ -65,12 +62,6 @@ all: 0001-DIO_Basics.elf secondary-outputs
 	@echo 'Finished building: $@'
 	@echo ' '
 
-0001-DIO_Basics.eep: 0001-DIO_Basics.elf
-	@echo 'Create eeprom image (ihex format)'
-	-avr-objcopy -j .eeprom --no-change-warnings --change-section-lma .eeprom=0 -O ihex 0001-DIO_Basics.elf  "0001-DIO_Basics.eep"
-	@echo 'Finished building: $@'
-	@echo ' '
-
 sizedummy: 0001-DIO_Basics.elf
 	@echo 'Invoking: Print Size'
 	-avr-size --format=avr --mcu=atmega32 0001-DIO_Basics.elf
@@ -79,10 +70,10 @@ sizedummy: 0001-DIO_Basics.elf
 
 # Other Targets
 clean:
-	-$(RM) $(FLASH_IMAGE)$(ELFS)$(OBJS)$(ASM_DEPS)$(EEPROM_IMAGE)$(S_DEPS)$(SIZEDUMMY)$(S_UPPER_DEPS)$(LSS)$(C_DEPS) 0001-DIO_Basics.elf
+	-$(RM) $(FLASH_IMAGE)$(ELFS)$(OBJS)$(ASM_DEPS)$(S_DEPS)$(SIZEDUMMY)$(S_UPPER_DEPS)$(LSS)$(C_DEPS) 0001-DIO_Basics.elf
 	-@echo ' '
 
-secondary-outputs: $(LSS) $(FLASH_IMAGE) $(EEPROM_IMAGE) $(SIZEDUMMY)
+secondary-outputs: $(LSS) $(FLASH_IMAGE) $(SIZEDUMMY)
 
 .PHONY: all clean dependents
 .SECONDARY:

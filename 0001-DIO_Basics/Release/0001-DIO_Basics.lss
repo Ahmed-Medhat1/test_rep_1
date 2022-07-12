@@ -3,8 +3,12 @@
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         000000a2  00000000  00000000  00000054  2**1
+  0 .text         000000d6  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .stab         00000330  00000000  00000000  0000012c  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  2 .stabstr      0000069a  00000000  00000000  0000045c  2**0
+                  CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
 
@@ -39,40 +43,92 @@ Disassembly of section .text:
   5c:	de bf       	out	0x3e, r29	; 62
   5e:	cd bf       	out	0x3d, r28	; 61
   60:	0e 94 36 00 	call	0x6c	; 0x6c <main>
-  64:	0c 94 4f 00 	jmp	0x9e	; 0x9e <_exit>
+  64:	0c 94 69 00 	jmp	0xd2	; 0xd2 <_exit>
 
 00000068 <__bad_interrupt>:
   68:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
 0000006c <main>:
-  6c:	8f e0       	ldi	r24, 0x0F	; 15
-  6e:	87 bb       	out	0x17, r24	; 23
-  70:	61 e0       	ldi	r22, 0x01	; 1
-  72:	48 ec       	ldi	r20, 0xC8	; 200
-  74:	50 e0       	ldi	r21, 0x00	; 0
-  76:	68 bb       	out	0x18, r22	; 24
-  78:	20 e0       	ldi	r18, 0x00	; 0
-  7a:	30 e0       	ldi	r19, 0x00	; 0
-  7c:	0d c0       	rjmp	.+26     	; 0x98 <main+0x2c>
-  7e:	fa 01       	movw	r30, r20
-  80:	31 97       	sbiw	r30, 0x01	; 1
-  82:	f1 f7       	brne	.-4      	; 0x80 <main+0x14>
-  84:	01 97       	sbiw	r24, 0x01	; 1
-  86:	d9 f7       	brne	.-10     	; 0x7e <main+0x12>
-  88:	88 b3       	in	r24, 0x18	; 24
-  8a:	88 0f       	add	r24, r24
-  8c:	88 bb       	out	0x18, r24	; 24
-  8e:	2f 5f       	subi	r18, 0xFF	; 255
-  90:	3f 4f       	sbci	r19, 0xFF	; 255
-  92:	24 30       	cpi	r18, 0x04	; 4
-  94:	31 05       	cpc	r19, r1
-  96:	79 f3       	breq	.-34     	; 0x76 <main+0xa>
-  98:	84 ec       	ldi	r24, 0xC4	; 196
-  9a:	99 e0       	ldi	r25, 0x09	; 9
-  9c:	f0 cf       	rjmp	.-32     	; 0x7e <main+0x12>
+#include <avr/io.h>
+#include<util/delay.h>
+#include "BIT_MATH.H"
 
-0000009e <_exit>:
-  9e:	f8 94       	cli
+int main(void)
+{
+  6c:	df 93       	push	r29
+  6e:	cf 93       	push	r28
+  70:	cd b7       	in	r28, 0x3d	; 61
+  72:	de b7       	in	r29, 0x3e	; 62
+	//DDRA =0x0f ; //0b00000001;
+	SET_BIT(DDRA,0); //PA0->OUTPUT
+  74:	aa e3       	ldi	r26, 0x3A	; 58
+  76:	b0 e0       	ldi	r27, 0x00	; 0
+  78:	ea e3       	ldi	r30, 0x3A	; 58
+  7a:	f0 e0       	ldi	r31, 0x00	; 0
+  7c:	80 81       	ld	r24, Z
+  7e:	81 60       	ori	r24, 0x01	; 1
+  80:	8c 93       	st	X, r24
+	CLR_BIT(DDRA,1); //PA1->INPUT
+  82:	aa e3       	ldi	r26, 0x3A	; 58
+  84:	b0 e0       	ldi	r27, 0x00	; 0
+  86:	ea e3       	ldi	r30, 0x3A	; 58
+  88:	f0 e0       	ldi	r31, 0x00	; 0
+  8a:	80 81       	ld	r24, Z
+  8c:	8d 7f       	andi	r24, 0xFD	; 253
+  8e:	8c 93       	st	X, r24
+	SET_BIT(PORTA,1); //ENABLE PULLUP ON PA1
+  90:	ab e3       	ldi	r26, 0x3B	; 59
+  92:	b0 e0       	ldi	r27, 0x00	; 0
+  94:	eb e3       	ldi	r30, 0x3B	; 59
+  96:	f0 e0       	ldi	r31, 0x00	; 0
+  98:	80 81       	ld	r24, Z
+  9a:	82 60       	ori	r24, 0x02	; 2
+  9c:	8c 93       	st	X, r24
 
-000000a0 <__stop_program>:
-  a0:	ff cf       	rjmp	.-2      	; 0xa0 <__stop_program>
+    //	_delay_ms(250);
+    	//PORTB <<= 1;
+
+    /* }*/
+	if(GET_BIT(PINA,1)==0)
+  9e:	e9 e3       	ldi	r30, 0x39	; 57
+  a0:	f0 e0       	ldi	r31, 0x00	; 0
+  a2:	80 81       	ld	r24, Z
+  a4:	86 95       	lsr	r24
+  a6:	88 2f       	mov	r24, r24
+  a8:	90 e0       	ldi	r25, 0x00	; 0
+  aa:	81 70       	andi	r24, 0x01	; 1
+  ac:	90 70       	andi	r25, 0x00	; 0
+  ae:	00 97       	sbiw	r24, 0x00	; 0
+  b0:	41 f4       	brne	.+16     	; 0xc2 <main+0x56>
+		if(GET_BIT(PINA,1)==0)
+		{
+			TOG_BIT(PORTA,0);
+			}*/
+
+			SET_BIT(PORTA,0);
+  b2:	ab e3       	ldi	r26, 0x3B	; 59
+  b4:	b0 e0       	ldi	r27, 0x00	; 0
+  b6:	eb e3       	ldi	r30, 0x3B	; 59
+  b8:	f0 e0       	ldi	r31, 0x00	; 0
+  ba:	80 81       	ld	r24, Z
+  bc:	81 60       	ori	r24, 0x01	; 1
+  be:	8c 93       	st	X, r24
+  c0:	ee cf       	rjmp	.-36     	; 0x9e <main+0x32>
+		}
+		else
+		{
+			CLR_BIT(PORTA,0);
+  c2:	ab e3       	ldi	r26, 0x3B	; 59
+  c4:	b0 e0       	ldi	r27, 0x00	; 0
+  c6:	eb e3       	ldi	r30, 0x3B	; 59
+  c8:	f0 e0       	ldi	r31, 0x00	; 0
+  ca:	80 81       	ld	r24, Z
+  cc:	8e 7f       	andi	r24, 0xFE	; 254
+  ce:	8c 93       	st	X, r24
+  d0:	e6 cf       	rjmp	.-52     	; 0x9e <main+0x32>
+
+000000d2 <_exit>:
+  d2:	f8 94       	cli
+
+000000d4 <__stop_program>:
+  d4:	ff cf       	rjmp	.-2      	; 0xd4 <__stop_program>
